@@ -1,0 +1,47 @@
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .todo-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s;
+        }
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .todo-text {
+            flex-grow: 1;
+            margin: 0 15px;
+            cursor: pointer;
+            word-break: break-all;
+        }
+        .btn-group-sm .btn {
+            margin-left: 5px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
