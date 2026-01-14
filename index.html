@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,19 +16,22 @@
             min-height: 100vh;
             padding: 40px 20px;
         }
+
         .todo-card {
             max-width: 500px;
             margin: auto;
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
+
         h2 {
             font-weight: 700;
             color: #2d3748;
             letter-spacing: -0.5px;
         }
+
         .input-group {
             background: #f8fafc;
             border-radius: 12px;
@@ -35,23 +39,28 @@
             border: 1px solid #e2e8f0;
             transition: border-color 0.2s;
         }
+
         .input-group.is-invalid {
             border-color: #dc3545;
         }
+
         .form-control {
             border: none;
             background: transparent;
             padding: 12px 15px;
         }
+
         .form-control:focus {
             box-shadow: none;
             background: transparent;
         }
+
         .btn-add {
             border-radius: 10px !important;
             font-weight: 600;
             padding: 10px 20px;
         }
+
         .todo-item {
             display: flex;
             align-items: center;
@@ -63,10 +72,12 @@
             border-radius: 12px;
             transition: all 0.2s ease;
         }
+
         .todo-item:hover {
             border-color: #cbd5e1;
             transform: translateY(-2px);
         }
+
         .todo-text {
             flex-grow: 1;
             margin-right: 15px;
@@ -74,10 +85,12 @@
             color: #4a5568;
             cursor: pointer;
         }
+
         .completed {
             text-decoration: line-through;
             opacity: 0.5;
         }
+
         .btn-action {
             width: 32px;
             height: 32px;
@@ -89,12 +102,14 @@
             margin-left: 5px;
             font-size: 14px;
         }
+
         .edit-input {
             border: 1px solid #3b82f6;
             border-radius: 6px;
             padding: 2px 8px;
             width: 100%;
         }
+
         .error-msg {
             color: #dc3545;
             font-size: 0.8rem;
@@ -104,160 +119,163 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="todo-card">
-    <h2 class="text-center mb-4">Task Manager</h2>
+    <div class="todo-card">
+        <h2 class="text-center mb-4">Task Manager</h2>
 
-    <div class="input-group mb-4" id="inputWrapper">
-        <input type="text" id="todoInput" class="form-control" placeholder="Add a new task..." autocomplete="off">
-        <button class="btn btn-primary btn-add" type="button" id="addButton">Add</button>
+        <div class="input-group mb-4" id="inputWrapper">
+            <input type="text" id="todoInput" class="form-control" placeholder="Add a new task..." autocomplete="off">
+            <button class="btn btn-primary btn-add" type="button" id="addButton">Add</button>
+        </div>
+        <div id="errorMsg" class="error-msg text-center">Please enter a task!</div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <small class="text-muted fw-bold" id="taskCount">0 tasks left</small>
+            <button class="btn btn-link btn-sm p-0 text-danger text-decoration-none fw-bold" id="deleteAllButton"
+                style="display:none;">Delete All</button>
+        </div>
+
+        <div id="todoList"></div>
     </div>
-    <div id="errorMsg" class="error-msg text-center">Please enter a task!</div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <small class="text-muted fw-bold" id="taskCount">0 tasks left</small>
-        <button class="btn btn-link btn-sm p-0 text-danger text-decoration-none fw-bold" id="deleteAllButton" style="display:none;">Delete All</button>
-    </div>
+    <script>
+        const todoInput = document.getElementById('todoInput');
+        const addButton = document.getElementById('addButton');
+        const todoList = document.getElementById('todoList');
+        const taskCountLabel = document.getElementById('taskCount');
+        const deleteAllButton = document.getElementById('deleteAllButton');
+        const inputWrapper = document.getElementById('inputWrapper');
+        const errorMsg = document.getElementById('errorMsg');
 
-    <div id="todoList"></div>
-</div>
+        // Update the counter and visibility of "Delete All"
+        function updateHeader() {
+            const totalTasks = todoList.children.length;
+            const incompleteTasks = todoList.querySelectorAll('.todo-text:not(.completed)').length;
 
-<script>
-    const todoInput = document.getElementById('todoInput');
-    const addButton = document.getElementById('addButton');
-    const todoList = document.getElementById('todoList');
-    const taskCountLabel = document.getElementById('taskCount');
-    const deleteAllButton = document.getElementById('deleteAllButton');
-    const inputWrapper = document.getElementById('inputWrapper');
-    const errorMsg = document.getElementById('errorMsg');
-
-    // Update the counter and visibility of "Delete All"
-    function updateHeader() {
-        const totalTasks = todoList.children.length;
-        const incompleteTasks = todoList.querySelectorAll('.todo-text:not(.completed)').length;
-        
-        taskCountLabel.innerText = `${incompleteTasks} ${incompleteTasks === 1 ? 'task' : 'tasks'} left`;
-        deleteAllButton.style.display = totalTasks > 0 ? "block" : "none";
-    }
-
-    function createTodoElement(text) {
-        const item = document.createElement('div');
-        item.className = "todo-item";
-
-        // Text Component
-        const span = document.createElement('span');
-        span.className = "todo-text";
-        span.innerText = text;
-        span.onclick = function() {
-            span.classList.toggle('completed');
-            updateHeader();
-        };
-
-        // Actions Container
-        const actions = document.createElement('div');
-        actions.className = "d-flex";
-
-        // Edit Button Logic
-        const editBtn = document.createElement('button');
-        editBtn.className = "btn btn-outline-secondary btn-action";
-        editBtn.innerHTML = "✎";
-        editBtn.onclick = function() {
-            if (item.contains(span)) {
-                const currentText = span.innerText;
-                const input = document.createElement('input');
-                input.type = "text";
-                input.className = "edit-input";
-                input.value = currentText;
-
-                let isSaving = false;
-
-                const saveChanges = () => {
-                    if (isSaving) return;
-                    isSaving = true;
-
-                    const val = input.value.trim();
-                    
-                    if (item.contains(input)) {
-                        if (val !== "") {
-                            span.innerText = val;
-                            item.replaceChild(span, input);
-                        } else {
-                            item.remove();
-                            updateHeader();
-                        }
-                    }
-                };
-
-                input.onkeydown = (e) => { 
-                    if(e.key === 'Enter') {
-                        e.preventDefault();
-                        saveChanges(); 
-                    }
-                };
-                input.onblur = saveChanges;
-
-                item.replaceChild(input, span);
-                input.focus();
-            }
-        };
-
-        // Delete Button Logic
-        const delBtn = document.createElement('button');
-        delBtn.className = "btn btn-outline-danger btn-action";
-        delBtn.innerHTML = "×";
-        delBtn.onclick = function() {
-            item.remove();
-            updateHeader();
-        };
-
-        actions.appendChild(editBtn);
-        actions.appendChild(delBtn);
-        item.appendChild(span);
-        item.appendChild(actions);
-
-        return item;
-    }
-
-    function addTask() {
-        const text = todoInput.value.trim();
-        
-        if (text === "") {
-            // Show validation error
-            inputWrapper.classList.add('is-invalid');
-            errorMsg.style.display = 'block';
-            return;
+            taskCountLabel.innerText = `${incompleteTasks} ${incompleteTasks === 1 ? 'task' : 'tasks'} left`;
+            deleteAllButton.style.display = totalTasks > 0 ? "block" : "none";
         }
 
-        // Hide validation error if it was showing
-        inputWrapper.classList.remove('is-invalid');
-        errorMsg.style.display = 'none';
+        function createTodoElement(text) {
+            const item = document.createElement('div');
+            item.className = "todo-item";
 
-        const todoElement = createTodoElement(text);
-        todoList.appendChild(todoElement);
-        
-        todoInput.value = "";
-        updateHeader();
-    }
+            // Text Component
+            const span = document.createElement('span');
+            span.className = "todo-text";
+            span.innerText = text;
+            span.onclick = function () {
+                span.classList.toggle('completed');
+                updateHeader();
+            };
 
-    // Event Listeners
-    addButton.onclick = addTask;
-    
-    todoInput.onkeypress = (e) => { 
-        if (e.key === 'Enter') addTask(); 
-    };
+            // Actions Container
+            const actions = document.createElement('div');
+            actions.className = "d-flex";
 
-    // Remove error formatting when user starts typing
-    todoInput.oninput = () => {
-        inputWrapper.classList.remove('is-invalid');
-        errorMsg.style.display = 'none';
-    };
+            // Edit Button Logic
+            const editBtn = document.createElement('button');
+            editBtn.className = "btn btn-outline-secondary btn-action";
+            editBtn.innerHTML = "✎";
+            editBtn.onclick = function () {
+                if (item.contains(span)) {
+                    const currentText = span.innerText;
+                    const input = document.createElement('input');
+                    input.type = "text";
+                    input.className = "edit-input";
+                    input.value = currentText;
 
-    deleteAllButton.onclick = function() {
-        todoList.innerHTML = "";
-        updateHeader();
-    };
-</script>
+                    let isSaving = false;
+
+                    const saveChanges = () => {
+                        if (isSaving) return;
+                        isSaving = true;
+
+                        const val = input.value.trim();
+
+                        if (item.contains(input)) {
+                            if (val !== "") {
+                                span.innerText = val;
+                                item.replaceChild(span, input);
+                            } else {
+                                item.remove();
+                                updateHeader();
+                            }
+                        }
+                    };
+
+                    input.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveChanges();
+                        }
+                    };
+                    input.onblur = saveChanges;
+
+                    item.replaceChild(input, span);
+                    input.focus();
+                }
+            };
+
+            // Delete Button Logic
+            const delBtn = document.createElement('button');
+            delBtn.className = "btn btn-outline-danger btn-action";
+            delBtn.innerHTML = "×";
+            delBtn.onclick = function () {
+                item.remove();
+                updateHeader();
+            };
+
+            actions.appendChild(editBtn);
+            actions.appendChild(delBtn);
+            item.appendChild(span);
+            item.appendChild(actions);
+
+            return item;
+        }
+
+        function addTask() {
+            const text = todoInput.value.trim();
+
+            if (text === "") {
+                // Show validation error
+                inputWrapper.classList.add('is-invalid');
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Hide validation error if it was showing
+            inputWrapper.classList.remove('is-invalid');
+            errorMsg.style.display = 'none';
+
+            const todoElement = createTodoElement(text);
+            todoList.appendChild(todoElement);
+
+            todoInput.value = "";
+            updateHeader();
+        }
+
+        // Event Listeners
+        addButton.onclick = addTask;
+
+        todoInput.onkeypress = (e) => {
+            if (e.key === 'Enter') addTask();
+        };
+
+        // Remove error formatting when user starts typing
+        todoInput.oninput = () => {
+            inputWrapper.classList.remove('is-invalid');
+            errorMsg.style.display = 'none';
+        };
+
+        deleteAllButton.onclick = function () {
+            todoList.innerHTML = "";
+            updateHeader();
+        };
+    </script>
 
 </body>
+
 </html>
